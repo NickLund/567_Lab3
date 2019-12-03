@@ -11,3 +11,7 @@ https://wiki.python.org/moin/UdpCommunication
 
 
 https://docs.python.org/3/library/argparse.html
+
+For IP and CIDR stuff
+from netaddr import *
+https://netaddr.readthedocs.io/en/latest/tutorial_01.html
