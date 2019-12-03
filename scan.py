@@ -76,7 +76,7 @@ def scan(host_ip, host_layer, host_port):
 def main():
     args = get_args()
     for i in args.ip:
-        scan(args.ip,args.layer,args.port)
+        scan(args.ip[i],args.layer,args.port)
 
 
 if __name__ == '__main__':
