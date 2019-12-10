@@ -33,7 +33,7 @@ def TCP_connect(ip, port, output, printIP):
         TCPsock.connect((ip, port))
         output.append('OPEN')
         TCPsock.close()
-        printIP = True
+        printIP.append('worked')
     except:
         output.append('')
 
@@ -46,7 +46,7 @@ def UDP_connect(ip, port, output, printIP):
         UDPsock.connect((ip, port))
         output.append('OPEN')
         UDPsock.close()
-        printIP = True
+        printIP.append('worked')
     except:
         output.append('')
 
@@ -55,7 +55,7 @@ def scan(host_ip, host_layer, host_port):
     threads = []
     output = []
     ports = []
-    printIP = False
+    printIP = []
     #Host Port not specified -> Scan well-known ports
     if host_port is None:
         for i in range (20,1023):
@@ -83,19 +83,20 @@ def scan(host_ip, host_layer, host_port):
     for i in threads:
         i.join()
     #Print open ports
-    if (printIP == True):
+    if (printIP[0] == 'True'):
         print('For IP %d: ') % host_ip
         for i in threads:
             if output[i] == 'OPEN':
                 print('Port %d: ' + output[i]) % ports[i]
-#def ICMP(host_ip):
-icmp = IP(dst=host_ip)/ICMP()
-resp = sr1(icmp,timeout=10)
-if resp == None:
-   #something down
-else:
-    #something up
 
+def ICMP(host_ip):
+    icmp = IP(dst=host_ip)/ICMP()
+    resp = sr1(icmp,timeout=10)
+    if resp == None:
+        print('%d is unreachable')
+        return False
+    else:
+        return True
 
 def main():
     args = get_args()
@@ -106,8 +107,6 @@ def main():
                 #print(i)
                 ip_addresses.append(i)
         elif (args.cidr != False):
-            #ips = IPNetwork(args.cidr)
-            #ip_addresses = range(int(ipaddress.IPv4Address(ips[0])),int(ipaddress.IPv4Address(ips[-1]))+1)
             for ip in IPNetwork(args.cidr):
                 ip_addresses.append('%s' % ip)
         elif (args.range != False):
@@ -131,7 +130,8 @@ def main():
             #ipBuild = ipaddress.ip_address(ip_addresses[i])
             #scan(str(ipBuild),args.layer,args.port)
             #scan(ip_addresses[i],args.layer,args.port)
-            scan(i,args.layer,args.port)
+            if ICMP(i):
+                scan(i,args.layer,args.port)
     else:
         print ("Incorrect number of IP paramaters. Use one (and only one) of the IP flags (-ip, -cidr, -range, -file)")
 
