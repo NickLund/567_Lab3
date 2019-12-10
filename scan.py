@@ -10,6 +10,7 @@ from netaddr import *
 import ipaddress
 import socket
 from prettytable import PrettyTable
+from scapy.all import *
 
 #Get command line arguments
 def get_args():
@@ -88,6 +89,12 @@ def scan(host_ip, host_layer, host_port):
             if output[i] == 'OPEN':
                 print('Port %d: ' + output[i]) % ports[i]
 #def ICMP(host_ip):
+icmp = IP(dst=host_ip)/ICMP()
+resp = sr1(icmp,timeout=10)
+if resp == None:
+   #something down
+else:
+    #something up
 
 
 def main():
@@ -130,16 +137,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-#ipaddress::
-#>>ipaddress.IPv4Address('x.x.x.x')
-#IPv4Address('x.x.x.x')
-#>>ipaddress.IPv4Address(integer)
-#IPv4Address('x.x.x.x')
-
-#netaddr::
-#>>str(ip)
-#'x.x.x.x'
-#>>int(ip)
-#[integer]
