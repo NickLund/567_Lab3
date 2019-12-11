@@ -44,11 +44,11 @@ def UDP_connect(ip, port, output, printIP):
     UDPsock.settimeout(0.75)
     try:
         UDPsock.connect((ip, port))
-        output.append('OPEN')
+        output.append(port)
         UDPsock.close()
         printIP.append('worked')
     except:
-        output.append('')
+        return
 
 #runs TCP/UDP scan with multiple threads
 def scan(host_ip, host_layer, host_port):
