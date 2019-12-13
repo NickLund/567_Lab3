@@ -21,6 +21,7 @@ def get_args():
     parser.add_argument("-file", required=False, default=False, help="IP address file input (single IP per line, no protocol nor ports")
     parser.add_argument("-layer", required=True, help="Required, specify TCP, UDP, ICMP, or traceroute")
     parser.add_argument("-port", nargs='*', type=int, required=False, help="Port number, default scans all well-known ports")
+    parser.add_argument("-html", required=False, help="Select for outputting to HTML, otherwise prints in console")
     args = parser.parse_args()
     return args
 
@@ -51,7 +52,7 @@ def UDP_connect(ip, port, output, printIP):
         return
 
 #runs TCP/UDP scan with multiple threads
-def scan(host_ip, host_layer, host_port):
+def scan(host_ip, host_layer, host_port, sendToFile):
     threads = []
     output = []
     ports = []
@@ -78,7 +79,8 @@ def scan(host_ip, host_layer, host_port):
             threads.append(t)
     #check if ICMP, then stop rest of scan
     elif (host_layer == 'ICMP'):
-        print('%s is up!') % host_ip
+        sendToFile.append('%s is up!' % host_ip)
+        #print('%s is up!') % host_ip
         return
     else:
         print('You had a typo at the -layer argument')
@@ -91,12 +93,24 @@ def scan(host_ip, host_layer, host_port):
         i.join()
     #Print open ports
     if (len(printIP)>0):
-        print('Open ports on %s: ') % host_ip
+        sendToFile.append('Open ports on %s: ' % host_ip)
+        #print('Open ports on %s: ') % host_ip
         for i in range(len(output)):
-            print('Port %d: OPEN') % output[i]
+            sendToFile.append('Port %d: OPEN' % output[i])
+            #print('Port %d: OPEN') % output[i]
 
     else:
-        print('Ports not open on %s ') % host_ip
+        sendToFile.append('Ports not open on %s ' % host_ip)
+        #print('Ports not open on %s ') % host_ip
+
+def outToFile(printOrFile, sendToFile):
+    if printOrFile:
+        for i in sendToFile:
+            print(i)
+    else:
+        outFile = open("output.html", "w+")
+        outFile.write(sendToFile.get_html_string(attributes={"border":"1"}))
+
 
 #Ping host with ICMP packet
 def nick_icmp(host_ip):
@@ -106,20 +120,23 @@ def nick_icmp(host_ip):
     return True
 
 #Traceroute
-def nick_traceroute(host_ip):
+def nick_traceroute(host_ip, sendToFile):
     for i in range(1, 28):
         pkt = IP(dst=host_ip, ttl=i) / UDP(dport=33434)
         reply = sr1(pkt, verbose=0)
         if reply is None:
             break
         elif reply.type == 3:
-            print(reply.src)
+            sendToFile(reply.srce)
+            #print(reply.src)
             break
         else:
-            print"%d : " % i, reply.src
+            sendToFile("%d : "% i, reply.src)
+            #print("%d : ")% i, reply.src
 
 def main():
     args = get_args()
+    sendToFile = []
     #Does a check to only do one IP check at a time
     if (((args.ip != False) and (args.cidr == False) and (args.range == False) and args.file == False) or (args.ip == False and args.cidr != False and args.range == False and args.file == False) or (args.ip == False and args.cidr == False or args.range != False and args.file == False) or (args.ip == False and args.cidr == False or args.range == False and args.file != False)):
         ip_addresses = []
@@ -144,12 +161,14 @@ def main():
         for i in ip_addresses:
             #if traceroute
             if (args.layer == 'traceroute'):
-                print('Starting traceroute for %s') % i
-                nick_traceroute(i)
+                sendToFile.append('Starting traceroute for %s' % i)
+                #print('Starting traceroute for %s') % i
+                nick_traceroute(i, sendToFile)
                 break
             #if host is pingable, then continue
             if nick_icmp(i):
-                scan(i,args.layer,args.port)
+                scan(i,args.layer,args.port,sendToFile)
+        
     else:
         print ("Incorrect number of IP paramaters. Use one (and only one) of the IP flags (-ip, -cidr, -range, -file)")
 
