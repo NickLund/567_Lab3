@@ -1,15 +1,9 @@
 from argparse import ArgumentParser
-import argparse 
 import os
 import sys
 import threading
-import struct
-import select
-import time
 from netaddr import *
-import ipaddress
 import socket
-#from prettytable import PrettyTable
 from scapy.all import *
 from fpdf import FPDF
 
@@ -20,9 +14,9 @@ def get_args():
     parser.add_argument("-cidr", required=False, default=False, help="IP CIDR block address to scan (i.e. 192.168.1.0/24)")
     parser.add_argument("-range", nargs='+', required=False, default=False, help="IP range to scan (no comma, first last i.e. 192.168.1.1 192.168.1.255)")
     parser.add_argument("-file", required=False, default=False, help="IP address file input (single IP per line, no protocol nor ports")
-    parser.add_argument("-layer", required=True, help="Required, specify TCP, UDP, ICMP, or traceroute")
+    parser.add_argument("-layer", required=True, help="Required, specify TCP, UDP, ICMP, tracert. Note this will not export to PDF")
     parser.add_argument("-port", nargs='*', type=int, required=False, help="Port number, default scans all well-known ports")
-    parser.add_argument("-pdf", required=False, help="Select for outputting to PDF, otherwise prints in console")
+    parser.add_argument("-pdf", required=False, action='store_true', help="Select True for outputting to PDF, otherwise prints in console")
     args = parser.parse_args()
     return args
 
@@ -79,7 +73,7 @@ def scan(host_ip, host_layer, host_port, sendToFile):
             t = threading.Thread(target=UDP_connect, args=(host_ip, i, output, printIP))
             threads.append(t)
     #check if ICMP, then stop rest of scan
-    else (host_layer == 'ICMP'):
+    else:
         sendToFile.append('%s is up!' % host_ip)
         #print('%s is up!') % host_ip
         return
@@ -102,7 +96,7 @@ def scan(host_ip, host_layer, host_port, sendToFile):
         #print('Ports not open on %s ') % host_ip
 
 def outToFile(printOrFile, sendToFile):
-    if (printOrFile != False):
+    if (printOrFile == False):
         for i in sendToFile:
             print(i)
     else:
@@ -113,7 +107,7 @@ def outToFile(printOrFile, sendToFile):
         pdf.set_font("Arial", size=12)
         pdf.add_page()
         for i in sendToFile:
-            txt = sendToFile[i]
+            txt = i
             pdf.cell(0, 10, txt=txt, ln=1)
         pdf.output("Results.pdf")
 
@@ -124,8 +118,9 @@ def nick_icmp(host_ip):
         return False
     return True
 
-#Traceroute
+#Traceroute -> Never times out. IDK why, but works until the timeout doesn't happen.
 def nick_traceroute(host_ip, sendToFile):
+    '''
     for i in range(1, 28):
         pkt = IP(dst=host_ip, ttl=i) / UDP(dport=33434)
         reply = sr1(pkt, verbose=0)
@@ -138,12 +133,14 @@ def nick_traceroute(host_ip, sendToFile):
         else:
             sendToFile("%d : "% i, reply.src)
             #print("%d : ")% i, reply.src
+    '''
+    tracert(host_ip)
     return
 
 def main():
     args = get_args()
     sendToFile = []
-    if ((args.layer != "TCP") and (args.layer != "UDP") and (args.layer != "ICMP"):
+    if ((args.layer != "TCP") and (args.layer != "UDP") and (args.layer != "ICMP") and (args.layer != "tracert")):
         print('You had a typo at the -layer argument')
         return
     #Does a check to only do one IP check at a time
@@ -170,9 +167,9 @@ def main():
         for i in ip_addresses:
             #if traceroute
             if (args.layer == 'traceroute'):
-                sendToFile.append('Starting traceroute for %s' % i)
-                #print('Starting traceroute for %s') % i
-                nick_traceroute(i, sendToFile)
+                if (nick_icmp(i)):
+                    #sendToFile.append('Starting traceroute for %s' % i)
+                    nick_traceroute(i, sendToFile)
                 break
             #if host is pingable, then continue
             if nick_icmp(i):
