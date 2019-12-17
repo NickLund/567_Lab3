@@ -100,9 +100,6 @@ def outToFile(printOrFile, sendToFile):
         for i in sendToFile:
             print(i)
     else:
-        #outFile = open("output.html", "w+")
-        #outFile.write(sendToFile.get_html_string(attributes={"border":"1"}))
-
         pdf = FPDF()
         pdf.set_font("Arial", size=12)
         pdf.add_page()
@@ -140,6 +137,7 @@ def nick_traceroute(host_ip, sendToFile):
 def main():
     args = get_args()
     sendToFile = []
+    #check for layer flag typo
     if ((args.layer != "TCP") and (args.layer != "UDP") and (args.layer != "ICMP") and (args.layer != "tracert")):
         print('You had a typo at the -layer argument')
         return
