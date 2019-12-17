@@ -79,12 +79,9 @@ def scan(host_ip, host_layer, host_port, sendToFile):
             t = threading.Thread(target=UDP_connect, args=(host_ip, i, output, printIP))
             threads.append(t)
     #check if ICMP, then stop rest of scan
-    elif (host_layer == 'ICMP'):
+    else (host_layer == 'ICMP'):
         sendToFile.append('%s is up!' % host_ip)
         #print('%s is up!') % host_ip
-        return
-    else:
-        print('You had a typo at the -layer argument')
         return
     #Start the threads
     for i in threads:
@@ -146,6 +143,9 @@ def nick_traceroute(host_ip, sendToFile):
 def main():
     args = get_args()
     sendToFile = []
+    if ((args.layer != "TCP") and (args.layer != "UDP") and (args.layer != "ICMP"):
+        print('You had a typo at the -layer argument')
+        return
     #Does a check to only do one IP check at a time
     if (((args.ip != False) and (args.cidr == False) and (args.range == False) and args.file == False) or (args.ip == False and args.cidr != False and args.range == False and args.file == False) or (args.ip == False and args.cidr == False or args.range != False and args.file == False) or (args.ip == False and args.cidr == False or args.range == False and args.file != False)):
         ip_addresses = []
