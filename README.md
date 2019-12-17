@@ -12,15 +12,19 @@ Install the 'netaddr' and 'fpdf2' libraries/packages.
 Use argument flags to scan. You'll need an IP input flag, and a transport layer flag. With optional flags, you can specify port(s) and if you want this saved to a PDF rather than printed to console.
 For IP inputs:
   -ip     (Single or list (no comma) of IP's address to scan (i.e. 192.168.1.1 OR 192.168.1.1 192.168.1.2 [etc]))
+  
   -cider  (IP CIDR block address to scan (i.e. 192.168.1.0/24))
+  
   -range  (IP range to scan (no comma, first last i.e. 192.168.1.1 192.168.1.255))
+  
   -file   (IP address file input (single IP per line, no protocol nor ports)
+  
 For Transport Layer specificity:
-  - layer (Required, specify TCP, UDP, ICMP, tracert. Note this will not export to PDF)
+  -layer (Required, specify TCP, UDP, ICMP, tracert. Note this will not export to PDF)
 Port number:
-  - port  (Port number, default scans all well-known ports)\
+  -port  (Port number, default scans all well-known ports)\
 Save to PDF:
-  - pdf   (Select True for outputting to PDF, otherwise prints in console, saved as 'Results.PDF')
+  -pdf   (Select True for outputting to PDF, otherwise prints in console, saved as 'Results.PDF')
 
 ## Information
 This will only output at the very end of the scan, so it may take a minute or two before the console displays information.
