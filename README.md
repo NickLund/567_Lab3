@@ -21,10 +21,13 @@ For IP inputs:
   
 For Transport Layer specificity:
   -layer (Required, specify TCP, UDP, ICMP, tracert. Note this will not export to PDF)
+  
 Port number:
-  -port  (Port number, default scans all well-known ports)\
+  -port  (Port number, default scans all well-known ports)
+  
 Save to PDF:
   -pdf   (Select True for outputting to PDF, otherwise prints in console, saved as 'Results.PDF')
+  
 
 ## Information
 This will only output at the very end of the scan, so it may take a minute or two before the console displays information.
