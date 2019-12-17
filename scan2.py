@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-import argparse
+import argparse 
 import os
 import sys
 import threading
@@ -9,8 +9,9 @@ import time
 from netaddr import *
 import ipaddress
 import socket
-from prettytable import PrettyTable
+#from prettytable import PrettyTable
 from scapy.all import *
+from fpdf import FPDF
 
 #Get command line arguments
 def get_args():
@@ -21,7 +22,7 @@ def get_args():
     parser.add_argument("-file", required=False, default=False, help="IP address file input (single IP per line, no protocol nor ports")
     parser.add_argument("-layer", required=True, help="Required, specify TCP, UDP, ICMP, or traceroute")
     parser.add_argument("-port", nargs='*', type=int, required=False, help="Port number, default scans all well-known ports")
-    parser.add_argument("-html", required=False, help="Select for outputting to HTML, otherwise prints in console")
+    parser.add_argument("-pdf", required=False, help="Select for outputting to PDF, otherwise prints in console")
     args = parser.parse_args()
     return args
 
@@ -104,13 +105,20 @@ def scan(host_ip, host_layer, host_port, sendToFile):
         #print('Ports not open on %s ') % host_ip
 
 def outToFile(printOrFile, sendToFile):
-    if printOrFile:
+    if (printOrFile != False):
         for i in sendToFile:
             print(i)
     else:
-        outFile = open("output.html", "w+")
-        outFile.write(sendToFile.get_html_string(attributes={"border":"1"}))
+        #outFile = open("output.html", "w+")
+        #outFile.write(sendToFile.get_html_string(attributes={"border":"1"}))
 
+        pdf = FPDF()
+        pdf.set_font("Arial", size=12)
+        pdf.add_page()
+        for i in sendToFile:
+            txt = sendToFile[i]
+            pdf.cell(0, 10, txt=txt, ln=1)
+        pdf.output("Results.pdf")
 
 #Ping host with ICMP packet
 def nick_icmp(host_ip):
@@ -133,6 +141,7 @@ def nick_traceroute(host_ip, sendToFile):
         else:
             sendToFile("%d : "% i, reply.src)
             #print("%d : ")% i, reply.src
+    return
 
 def main():
     args = get_args()
@@ -168,10 +177,10 @@ def main():
             #if host is pingable, then continue
             if nick_icmp(i):
                 scan(i,args.layer,args.port,sendToFile)
-        
+        #Print to Console or PDF
+        outToFile(args.pdf, sendToFile)
     else:
         print ("Incorrect number of IP paramaters. Use one (and only one) of the IP flags (-ip, -cidr, -range, -file)")
 
 if __name__ == '__main__':
     main()
-
